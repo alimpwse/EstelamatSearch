@@ -1,0 +1,1017 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>بحث الاستلامات</title>
+<style>
+  :root{
+    --bg:#0f1512;
+    --panel:#171f1a;
+    --panel2:#1e2822;
+    --line:#2a352e;
+    --text:#e9ede9;
+    --muted:#8a978d;
+    --accent:#d4a83c;
+    --accent-dim:#5c4a1f;
+    --good:#4d9b6f;
+    --bad:#b5583f;
+    --panel-grad-end:#141b16;
+  }
+  body.light-mode{
+    --bg:#f3f4f0;
+    --panel:#ffffff;
+    --panel2:#eef0ea;
+    --line:#d8dcd3;
+    --text:#1c231d;
+    --muted:#5c655d;
+    --accent:#b8860b;
+    --accent-dim:#e8dcb0;
+    --good:#2f7a4d;
+    --bad:#a3402c;
+    --panel-grad-end:#e6e8e1;
+  }
+  body.light-mode input[type=date]{color-scheme:light;}
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family: system-ui, -apple-system, "Segoe UI", Tahoma, Arial, sans-serif;
+    min-height:100vh;
+    font-size:16px;
+  }
+  .wrap{max-width:900px;margin:0 auto;padding:20px 16px 60px;}
+  header{margin-bottom:20px;}
+  h1{font-size:24px;margin:0 0 4px;letter-spacing:.3px;}
+  .sub{color:var(--muted);font-size:13px;line-height:1.7;}
+  .card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:18px;
+    margin-bottom:16px;
+  }
+  .card h2{
+    font-size:17px;
+    margin:0 0 12px;
+    color:var(--accent);
+    display:flex;align-items:center;gap:8px;
+  }
+  .badge{
+    font-size:12px;background:var(--panel2);
+    border:1px solid var(--line);
+    padding:3px 10px;border-radius:20px;color:var(--muted);
+  }
+  textarea{
+    width:100%;
+    min-height:130px;
+    background:var(--panel2);
+    color:var(--text);
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:10px;
+    font-family:inherit;
+    font-size:13px;
+    resize:vertical;
+    direction:ltr;
+    text-align:left;
+  }
+  input[type=text], input[type=date]{
+    width:100%;
+    background:var(--panel2);
+    color:var(--text);
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:13px 16px;
+    font-size:17px;
+    font-family:inherit;
+  }
+  input[type=date]{color-scheme:dark;}
+  input[type=text]:focus, input[type=date]:focus, textarea:focus{outline:2px solid var(--accent);outline-offset:1px;}
+  button{
+    background:var(--accent);
+    color:#20180a;
+    border:none;
+    border-radius:8px;
+    padding:11px 20px;
+    font-size:15px;
+    font-weight:700;
+    cursor:pointer;
+    margin-top:10px;
+  }
+  button:hover{filter:brightness(1.08);}
+  button.secondary{
+    background:transparent;
+    color:var(--muted);
+    border:1px solid var(--line);
+    font-weight:400;
+  }
+  .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+  .msg{
+    padding:6px 0;color:var(--muted);font-size:14px;min-height:18px;
+  }
+  .msg.ok{color:var(--good);}
+  .msg.err{color:var(--bad);}
+  .results{margin-top:16px;}
+  .result{
+    background:var(--panel2);
+    border:1px solid var(--line);
+    border-right:3px solid var(--accent);
+    border-radius:8px;
+    padding:14px 16px;
+    margin-bottom:12px;
+  }
+  .result .meta{
+    display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;
+    font-size:13px;color:var(--muted);margin-bottom:9px;
+  }
+  .result .sender{color:var(--text);font-weight:700;font-size:15px;}
+  .result .text{
+    white-space:pre-wrap;
+    font-size:16px;
+    line-height:1.85;
+    direction:ltr;
+    text-align:left;
+  }
+  mark{background:var(--accent);color:#20180a;border-radius:3px;padding:0 3px;}
+  .empty{color:var(--muted);font-size:14px;padding:10px 0;}
+  .stat-line{font-size:13px;color:var(--muted);margin-top:6px;}
+  .hint{font-size:13px;color:var(--muted);margin-top:8px;line-height:1.7;}
+  code{background:var(--panel2);padding:1px 5px;border-radius:4px;font-size:13px;}
+
+  .collapse-header{
+    display:flex;align-items:center;justify-content:space-between;
+    cursor:pointer;
+  }
+  .collapse-header .chev{
+    color:var(--muted);font-size:13px;transition:transform .15s ease;
+  }
+  .collapse-header.open .chev{transform:rotate(180deg);}
+  .chev{color:var(--muted);font-size:13px;transition:transform .15s ease;}
+  .chev.open{transform:rotate(180deg);}
+  .collapse-body{display:none;margin-top:14px;}
+  .collapse-body.open{display:block;}
+
+  .dropzone{
+    border:2px dashed var(--line);
+    border-radius:10px;
+    padding:26px 16px;
+    text-align:center;
+    cursor:pointer;
+    transition:border-color .15s ease, background .15s ease;
+    background:var(--panel2);
+  }
+  .dropzone:hover{border-color:var(--accent-dim);}
+  .dropzone.drag{border-color:var(--accent);background:#242f27;}
+  .dropzone .dz-title{font-size:14px;color:var(--text);font-weight:700;margin-bottom:4px;}
+  .dropzone .dz-sub{font-size:12px;color:var(--muted);}
+  .dropzone input[type=file]{display:none;}
+  .or-sep{
+    display:flex;align-items:center;gap:10px;
+    color:var(--muted);font-size:11px;margin:14px 0;
+  }
+  .or-sep::before, .or-sep::after{content:"";flex:1;height:1px;background:var(--line);}
+  .filename-pill{
+    display:inline-flex;align-items:center;gap:6px;
+    background:var(--panel);border:1px solid var(--line);
+    border-radius:20px;padding:4px 12px;font-size:12px;color:var(--good);margin-top:8px;
+  }
+  .search-options{
+    display:flex;gap:16px;flex-wrap:wrap;margin-top:10px;font-size:13px;color:var(--muted);
+  }
+  .search-options label{display:flex;align-items:center;gap:5px;cursor:pointer;}
+  .search-options input[type=checkbox]{accent-color:var(--accent);width:15px;height:15px;}
+  select{
+    background:var(--panel2);color:var(--text);border:1px solid var(--line);
+    border-radius:6px;padding:6px 10px;font-size:13px;font-family:inherit;
+  }
+  .type-tag{
+    display:inline-block;font-size:12px;font-weight:700;
+    border-radius:5px;padding:2px 9px;margin-inline-start:8px;
+    color:#101410;
+  }
+  .warn-tag{
+    display:inline-block;font-size:12px;font-weight:700;
+    border-radius:5px;padding:2px 9px;margin-inline-start:8px;
+    color:#fff;background:var(--bad);
+  }
+  .type-group-header{
+    font-size:13px;font-weight:700;color:var(--muted);
+    margin:18px 0 8px;padding-bottom:4px;border-bottom:1px solid var(--line);
+  }
+  .type-group-header:first-child{margin-top:0;}
+  .search-card{
+    border:1px solid var(--line);
+    background:linear-gradient(180deg, var(--panel) 0%, var(--panel-grad-end) 100%);
+  }
+  .search-card h2{color:var(--text);font-size:18px;}
+  .search-box{position:relative;}
+  .search-box .search-icon{
+    position:absolute;right:16px;top:50%;transform:translateY(-50%);
+    color:var(--muted);font-size:20px;pointer-events:none;
+  }
+  .search-box .search-prefix{
+    position:absolute;left:16px;top:50%;transform:translateY(-50%);
+    color:var(--accent);font-size:18px;font-weight:700;
+    pointer-events:none;direction:ltr;
+  }
+  .search-box input[type=text]{
+    padding-right:46px;padding-left:38px;font-size:18px;padding-top:15px;padding-bottom:15px;
+    border:1px solid var(--line);direction:ltr;text-align:left;
+  }
+  .search-box input[type=text]:focus{border-color:var(--accent);}
+  .control-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px;}
+  .control-row-3{grid-template-columns:1fr 1fr 1fr;}
+  .control-row .control label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px;}
+  .control-row .control select, .control-row .control input[type=date]{
+    width:100%;font-size:14px;padding:10px 12px;border-radius:10px;
+  }
+  .chip-field{
+    display:block;width:100%;box-sizing:border-box;text-align:center;
+    padding:10px 12px;font-size:14px;font-weight:600;border-radius:10px;
+    border:1px solid var(--line);background:var(--panel2);color:var(--muted);
+    cursor:pointer;transition:all .15s ease;user-select:none;
+  }
+  .chip-field:hover{border-color:var(--accent-dim);}
+  .chip-field.active{color:#101410;border-color:transparent;}
+  .option-block{margin-top:14px;}
+  .option-hint{font-size:12px;color:var(--muted);margin-top:6px;}
+  .option-block .chip-row{margin:10px 0 0;}
+  .browse-card{
+    background:linear-gradient(180deg, var(--panel) 0%, var(--panel-grad-end) 100%);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:20px;
+    margin-bottom:16px;
+  }
+  .browse-header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;}
+  .browse-header h2{margin:0;font-size:16px;color:var(--text);}
+  .browse-header .tag{font-size:11px;color:var(--muted);background:var(--panel2);border:1px solid var(--line);padding:3px 10px;border-radius:20px;margin-inline-start:8px;}
+  .btn-small{
+    padding:6px 14px;font-size:12px;margin-top:0;
+  }
+  .btn-small.active{
+    background:var(--bad);color:#fff;border-color:transparent;
+  }
+  .browse-controls{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px;}
+  .control label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px;}
+  .control select{
+    width:100%;padding:10px 12px;font-size:14px;border-radius:10px;
+    background:var(--panel2);border:1px solid var(--line);color:var(--text);
+    transition:border-color .15s ease;
+  }
+  .control select:hover{border-color:var(--accent-dim);}
+  .control select:focus{outline:2px solid var(--accent);outline-offset:1px;}
+  .chip-row{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 6px;}
+  .type-chip{
+    border:1px solid var(--line);
+    background:var(--panel2);
+    color:var(--muted);
+    padding:6px 14px;
+    border-radius:20px;
+    font-size:13px;
+    cursor:pointer;
+    transition:all .15s ease;
+    user-select:none;
+  }
+  .type-chip:hover{border-color:var(--accent-dim);}
+  .type-chip.active{font-weight:700;color:#101410;border-color:transparent;}
+  .browse-list{margin-top:12px;}
+  .browse-item{
+    background:var(--panel2);
+    border:1px solid var(--line);
+    border-right:4px solid var(--accent);
+    border-radius:10px;
+    padding:12px 16px;
+    margin-bottom:8px;
+    transition:border-color .15s ease, transform .1s ease;
+  }
+  .browse-item:hover{border-color:var(--accent-dim);}
+  .browse-item .meta{
+    display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;
+    font-size:12px;color:var(--muted);margin-bottom:6px;
+  }
+  .browse-item .sender{color:var(--text);font-weight:700;font-size:14px;}
+  .browse-item .line{
+    font-size:14px;line-height:1.7;direction:ltr;text-align:left;white-space:pre-wrap;
+  }
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+</head>
+<body>
+<div class="wrap">
+  <header class="row" style="justify-content:space-between;">
+    <h1>بحث الاستلامات</h1>
+    <button class="secondary btn-small" id="themeToggle">☀ الوضع النهاري</button>
+  </header>
+
+  <div class="card" id="importCard">
+    <h2>استيراد <span class="badge" id="countBadge">0 رسالة</span></h2>
+    <div class="stat-line" id="lastUpdateLine"></div>
+
+    <div class="dropzone" id="dropzone" style="margin-top:10px;">
+      <div class="dz-title">اسحب ملف _chat.txt أو ملف zip هنا (تقدر تختار أكثر من ملف)</div>
+      <div class="dz-sub">أو اضغط هنا لاختيار الملفات — يستورد تلقائيًا (يدعم .txt و .zip). لو أكثر من ملف اسمه يبدأ بـ "WhatsApp Chat"، يختار الأحدث</div>
+      <div id="filenamePill"></div>
+      <input type="file" id="fileInput" accept=".txt,.zip" multiple>
+    </div>
+
+    <div class="collapse-header" id="pasteToggle" style="margin-top:14px;">
+      <span style="font-size:13px;color:var(--muted);">لصق نص يدويًا</span>
+      <span class="chev">▾</span>
+    </div>
+    <div class="collapse-body" id="pasteBody">
+      <textarea id="importArea" placeholder="الصق نص الشات هنا — يستورد تلقائيًا" style="min-height:80px;margin-top:8px;"></textarea>
+      <div class="row">
+        <button id="importBtn">استيراد يدوي</button>
+      </div>
+    </div>
+
+    <div class="row" style="margin-top:10px;">
+      <button class="secondary" id="clearAllBtn">مسح الكل</button>
+    </div>
+    <div class="msg" id="importMsg"></div>
+  </div>
+
+  <div class="card search-card">
+    <h2>البحث عن رقم الموقع</h2>
+    <div class="search-box">
+      <span class="search-icon">⌕</span>
+      <span class="search-prefix">S</span>
+      <input type="text" id="searchInput" placeholder="3/4/13 أو 4/17/12">
+    </div>
+    <div class="control-row control-row-3">
+      <div class="control">
+        <label for="prefixMatch">تطابق</label>
+        <span class="chip-field" id="prefixMatch" style="--chip-color:#d4a83c">بحث بالسابقة</span>
+      </div>
+      <div class="control">
+        <label for="viewMode">عرض النتائج</label>
+        <select id="viewMode">
+          <option value="line">سطر بسطر (تفصيلي)</option>
+          <option value="message">الرسالة كاملة</option>
+        </select>
+      </div>
+      <div class="control">
+        <label for="sortOrder">ترتيب</label>
+        <select id="sortOrder">
+          <option value="desc">الأحدث أولاً</option>
+          <option value="asc">الأقدم أولاً</option>
+        </select>
+      </div>
+    </div>
+    <div class="stat-line">بحث بالسابقة: كتابة رقم ناقص مثل S3/4 يطلع كل شي تحته</div>
+
+    <div class="option-block" id="groupOptionBlock">
+      <div class="control" style="max-width:280px;">
+        <label for="groupByType">تقسيم النتائج</label>
+        <span class="chip-field" id="groupByType" style="--chip-color:#d4a83c">قسّم حسب البند</span>
+      </div>
+      <div class="chip-row" id="typeFilterRow" style="display:none;"></div>
+    </div>
+
+    <div class="control-row">
+      <div class="control">
+        <label for="dateFrom">من تاريخ</label>
+        <input type="date" id="dateFrom">
+      </div>
+      <div class="control">
+        <label for="dateTo">إلى تاريخ</label>
+        <input type="date" id="dateTo">
+      </div>
+    </div>
+    <div class="stat-line" id="searchStat"></div>
+    <div class="results" id="results"></div>
+  </div>
+
+  <div class="browse-card">
+    <div class="browse-header">
+      <h2>تصفح البنود <span class="tag">ثانوي</span></h2>
+      <div class="row" style="margin:0;">
+        <button class="secondary btn-small" id="browseWarnToggle">⚠ تنبيهات فقط</button>
+        <button class="secondary btn-small" id="browseReset">مسح الفلاتر</button>
+        <button class="secondary btn-small" id="browseChev">▾ طي القسم</button>
+      </div>
+    </div>
+    <div class="collapse-body open" id="browseBody">
+      <div class="browse-controls">
+        <div class="control">
+          <label for="browseBlock">القطعة</label>
+          <select id="browseBlock"><option value="">الكل</option></select>
+        </div>
+        <div class="control">
+          <label for="browseStreet">الشارع</label>
+          <select id="browseStreet"><option value="">الكل</option></select>
+        </div>
+      </div>
+      <div class="chip-row" id="browseTypeRow"></div>
+      <div class="stat-line" id="browseStat"></div>
+      <div class="browse-list" id="browseResults"></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+let messages = [];
+let items = [];
+
+const TYPE_META = {
+  mh:    {label:'منهول',       color:'#7fa8dd'},
+  hc:    {label:'وصلة منزلية', color:'#7fcf9e'},
+  pipe:  {label:'بايب/خط',     color:'#e0bb63'},
+  soil:  {label:'فحص تربة',    color:'#e08b73'},
+  other: {label:'غير مصنف',    color:'#aab3ac'}
+};
+
+function detectType(line){
+  if(/مانهول|منهول|\bmh\b/i.test(line)) return 'mh';
+  if(/وصل|house\s*connection|\bhc\b/i.test(line)) return 'hc';
+  if(/بايب|ss\s*line|\bline\b/i.test(line)) return 'pipe';
+  if(/مختبر|فحص\s*تربة/i.test(line)) return 'soil';
+  return null;
+}
+
+const VALID_BLOCKS = ['1','2','3','4','5','6'];
+
+function buildItems(){
+  const out = [];
+  for(const msg of messages){
+    const lines = msg.text.split('\n');
+    let lastType = null;
+    for(const line of lines){
+      const detected = detectType(line);
+      if(detected) lastType = detected;
+      const codes = extractCodes(line);
+      if(codes.length === 0) continue;
+      const bm = codes[0].match(/^S(\d+)\/(\d+)/i);
+      const block = bm ? bm[1] : null;
+      out.push({
+        ts: msg.ts, dateStr: msg.dateStr, timeStr: msg.timeStr, sender: msg.sender,
+        lineText: line.trim(), codes, type: detected || lastType || 'other',
+        block, street: bm ? bm[2] : null,
+        blockValid: block === null ? true : VALID_BLOCKS.includes(block)
+      });
+    }
+  }
+  items = out;
+}
+
+function normQueryTerm(raw){
+  let t = raw.trim();
+  if(t && !/^s/i.test(t)) t = 'S' + t;
+  return normCode(t);
+}
+
+function normCode(raw){
+  return raw.toUpperCase().replace(/\s+/g,'').replace(/^S\/?/, 'S').replace(/\/+/g,'/');
+}
+
+function extractCodes(text){
+  const re = /S\s*\/?\s*\d+(?:\s*\/\s*\d+){1,4}/gi;
+  const found = text.match(re) || [];
+  return [...new Set(found.map(normCode))];
+}
+
+function parseChat(raw){
+  const lines = raw.split(/\r?\n/);
+  const headerRe = /^\[(\d{1,2}\/\d{1,2}\/\d{4}),\s*(\d{1,2}:\d{2}:\d{2}\s?(?:AM|PM|am|pm))\]\s([^:]+):\s?(.*)$/;
+  const parsed = [];
+  let current = null;
+  for(const line of lines){
+    const m = line.match(headerRe);
+    if(m){
+      if(current) parsed.push(current);
+      const [, dateStr, timeStr, sender, firstText] = m;
+      current = { dateStr, timeStr, sender: sender.trim(), text: firstText };
+    } else if(current){
+      current.text += '\n' + line;
+    }
+  }
+  if(current) parsed.push(current);
+
+  return parsed.map(p => {
+    const [d,mo,y] = p.dateStr.split('/').map(n=>parseInt(n,10));
+    let [ , h, mi, s, ap ] = p.timeStr.match(/(\d{1,2}):(\d{2}):(\d{2})\s?(AM|PM|am|pm)?/);
+    h = parseInt(h,10); mi=parseInt(mi,10); s=parseInt(s,10);
+    if(ap){
+      ap = ap.toUpperCase();
+      if(ap==='PM' && h<12) h+=12;
+      if(ap==='AM' && h===12) h=0;
+    }
+    const ts = new Date(y, mo-1, d, h, mi, s).getTime();
+    const text = p.text.replace(/\u200e/g,'').trim();
+    const codes = extractCodes(text);
+    const id = p.dateStr+'|'+p.timeStr+'|'+p.sender+'|'+text;
+    return { id, ts, dateStr: p.dateStr, timeStr: p.timeStr, sender: p.sender, text, codes };
+  }).filter(m => m.text.length>0);
+}
+
+function updateCountBadge(){
+  document.getElementById('countBadge').textContent = messages.length + ' رسالة';
+  const lastLine = document.getElementById('lastUpdateLine');
+  if(messages.length === 0){
+    lastLine.textContent = '';
+    return;
+  }
+  const last = messages.reduce((a,b) => b.ts > a.ts ? b : a);
+  lastLine.textContent = `آخر رسالة بالبيانات المستوردة: ${last.dateStr} — ${last.timeStr}`;
+}
+
+function doImport(raw){
+  const msgEl = document.getElementById('importMsg');
+  if(!raw.trim()){
+    return;
+  }
+  msgEl.textContent = 'جارِ الاستيراد...';
+  msgEl.className = 'msg';
+  try{
+    const parsed = parseChat(raw);
+    const existingIds = new Set(messages.map(m=>m.id));
+    let added = 0;
+    for(const m of parsed){
+      if(!existingIds.has(m.id)){
+        messages.push(m);
+        existingIds.add(m.id);
+        added++;
+      }
+    }
+    messages.sort((a,b)=>a.ts-b.ts);
+    buildItems();
+    updateCountBadge();
+    buildBrowseFilters();
+    const noCodeCount = parsed.filter(m => m.codes.length === 0).length;
+    let summary = `تم — رسائل جديدة أُضيفت: ${added} (من أصل ${parsed.length} بالنص المستورد)`;
+    if(noCodeCount > 0){
+      summary += ` — تنبيه: ${noCodeCount} رسالة ما فيها رقم موقع واضح، ما راح تنلقط بالبحث`;
+    }
+    msgEl.textContent = summary;
+    msgEl.className = noCodeCount > 0 ? 'msg' : 'msg ok';
+    document.getElementById('importArea').value = '';
+  }catch(e){
+    msgEl.textContent = 'صار خطأ بالاستيراد: ' + e.message;
+    msgEl.className = 'msg err';
+  }
+}
+
+document.getElementById('importBtn').addEventListener('click', () => {
+  doImport(document.getElementById('importArea').value);
+});
+
+document.getElementById('clearAllBtn').addEventListener('click', () => {
+  if(!confirm('متأكد تبي تمسح كل الرسائل المستوردة؟')) return;
+  messages = [];
+  buildItems();
+  updateCountBadge();
+  buildBrowseFilters();
+  renderResults('');
+  renderBrowse();
+  document.getElementById('searchInput').value = '';
+  document.getElementById('filenamePill').innerHTML = '';
+  document.getElementById('importMsg').textContent = 'تم مسح كل البيانات.';
+  document.getElementById('importMsg').className = 'msg';
+});
+
+function handleFile(file){
+  if(!file){
+    document.getElementById('importMsg').textContent = 'ما لقيت ملف .txt أو .zip بين الملفات المختارة.';
+    document.getElementById('importMsg').className = 'msg err';
+    return;
+  }
+  const name = file.name.toLowerCase();
+  if(name.endsWith('.zip')){
+    handleZipFile(file);
+  }else if(name.endsWith('.txt')){
+    handleTxtFile(file);
+  }else{
+    document.getElementById('importMsg').textContent = 'الملف لازم يكون .txt أو .zip';
+    document.getElementById('importMsg').className = 'msg err';
+  }
+}
+
+function handleTxtFile(file){
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    document.getElementById('filenamePill').innerHTML = `<span class="filename-pill">✓ ${escapeHtml(file.name)}</span>`;
+    doImport(ev.target.result);
+  };
+  reader.onerror = () => {
+    document.getElementById('importMsg').textContent = 'ما قدرت أقرأ الملف.';
+    document.getElementById('importMsg').className = 'msg err';
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+
+async function handleZipFile(file){
+  const msgEl = document.getElementById('importMsg');
+  msgEl.textContent = 'جارِ فتح ملف الـ zip...';
+  msgEl.className = 'msg';
+  try{
+    if(typeof JSZip === 'undefined'){
+      msgEl.textContent = 'مكتبة قراءة الـ zip ما تحمّلت. تأكد من الاتصال بالإنترنت وحاول مرة ثانية.';
+      msgEl.className = 'msg err';
+      return;
+    }
+    const zip = await JSZip.loadAsync(file);
+    const txtEntries = Object.values(zip.files).filter(f => !f.dir && f.name.toLowerCase().endsWith('.txt'));
+    if(txtEntries.length === 0){
+      msgEl.textContent = 'ما فيه ملف txt داخل الـ zip.';
+      msgEl.className = 'msg err';
+      return;
+    }
+    // فضّل ملف يشبه _chat.txt، وإلا خذ أكبر ملف txt
+    let chosen = txtEntries.find(f => /chat\.txt$/i.test(f.name)) || txtEntries[0];
+    if(txtEntries.length > 1 && !/chat\.txt$/i.test(chosen.name)){
+      const sizes = await Promise.all(txtEntries.map(async f => ({f, size:(await f.async('string')).length})));
+      sizes.sort((a,b)=>b.size-a.size);
+      chosen = sizes[0].f;
+    }
+    const text = await chosen.async('string');
+    document.getElementById('filenamePill').innerHTML = `<span class="filename-pill">✓ ${escapeHtml(file.name)} → ${escapeHtml(chosen.name)}</span>`;
+    doImport(text);
+  }catch(e){
+    msgEl.textContent = 'صار خطأ بفتح ملف الـ zip: ' + e.message;
+    msgEl.className = 'msg err';
+  }
+}
+
+const dropzone = document.getElementById('dropzone');
+const fileInputEl = document.getElementById('fileInput');
+
+function pickTargetFile(fileList){
+  const files = [...fileList].filter(f => {
+    const n = f.name.toLowerCase();
+    return n.endsWith('.zip') || n.endsWith('.txt');
+  });
+  if(files.length === 0) return null;
+  // فضّل الملفات اللي اسمها يبدأ بـ "WhatsApp Chat"
+  const whatsapp = files.filter(f => /^whatsapp\s*chat/i.test(f.name.trim()));
+  const candidates = whatsapp.length > 0 ? whatsapp : files;
+  // خذ الأحدث حسب تاريخ التعديل
+  candidates.sort((a,b) => b.lastModified - a.lastModified);
+  return candidates[0];
+}
+
+dropzone.addEventListener('click', () => fileInputEl.click());
+fileInputEl.addEventListener('change', (e) => handleFile(pickTargetFile(e.target.files)));
+
+['dragenter','dragover'].forEach(evt => {
+  dropzone.addEventListener(evt, (e) => {
+    e.preventDefault(); e.stopPropagation();
+    dropzone.classList.add('drag');
+  });
+});
+['dragleave','drop'].forEach(evt => {
+  dropzone.addEventListener(evt, (e) => {
+    e.preventDefault(); e.stopPropagation();
+    dropzone.classList.remove('drag');
+  });
+});
+dropzone.addEventListener('drop', (e) => {
+  const file = pickTargetFile(e.dataTransfer.files);
+  handleFile(file);
+});
+
+let pasteDebounce;
+document.getElementById('importArea').addEventListener('input', (e) => {
+  clearTimeout(pasteDebounce);
+  const val = e.target.value;
+  pasteDebounce = setTimeout(() => {
+    if(val.trim()) doImport(val);
+  }, 600);
+});
+
+const pasteToggle = document.getElementById('pasteToggle');
+const pasteBody = document.getElementById('pasteBody');
+pasteToggle.addEventListener('click', () => {
+  pasteBody.classList.toggle('open');
+  pasteToggle.classList.toggle('open');
+});
+
+function highlight(text, queryCodes, prefixMode, color){
+  let out = text;
+  const markColor = color || '#d4a83c';
+  const re = /S\s*\/?\s*\d+(?:\s*\/\s*\d+){1,4}/gi;
+  out = out.replace(re, (match) => {
+    const n = normCode(match);
+    const isMatch = queryCodes.some(q => n === q || (prefixMode && (n.startsWith(q) || q.startsWith(n))));
+    return isMatch ? `<mark style="background:${markColor}">${match}</mark>` : match;
+  });
+  return out;
+}
+
+function parseDateInputValue(v){
+  if(!v) return null;
+  const [y, mo, d] = v.split('-').map(n=>parseInt(n,10));
+  return { d, mo, y };
+}
+
+function toDateInputValue(date){
+  const pad = n => String(n).padStart(2,'0');
+  return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}`;
+}
+
+function setDefaultDateRange(){
+  const today = new Date();
+  const monthAgo = new Date();
+  monthAgo.setMonth(monthAgo.getMonth()-1);
+  document.getElementById('dateTo').value = toDateInputValue(today);
+  document.getElementById('dateFrom').value = toDateInputValue(monthAgo);
+}
+
+function buildTypeFilterRow(){
+  const row = document.getElementById('typeFilterRow');
+  const allChip = `<span class="type-chip active" data-type="all" style="--chip-color:#d4a83c">الكل</span>`;
+  const typeChips = Object.keys(TYPE_META).map(t => `
+    <span class="type-chip" data-type="${t}" style="--chip-color:${TYPE_META[t].color}">${TYPE_META[t].label}</span>
+  `).join('');
+  row.innerHTML = allChip + typeChips;
+  row.querySelectorAll('.type-chip').forEach(chip => {
+    applyChipVisual(chip);
+    chip.addEventListener('click', () => {
+      if(chip.dataset.type === 'all'){
+        if(!chip.classList.contains('active')){
+          row.querySelectorAll('.type-chip').forEach(c => c.classList.remove('active'));
+          chip.classList.add('active');
+        }
+      }else{
+        row.querySelector('.type-chip[data-type="all"]').classList.remove('active');
+        chip.classList.toggle('active');
+        const anyActive = [...row.querySelectorAll('.type-chip:not([data-type="all"])')].some(c=>c.classList.contains('active'));
+        if(!anyActive) row.querySelector('.type-chip[data-type="all"]').classList.add('active');
+      }
+      row.querySelectorAll('.type-chip').forEach(applyChipVisual);
+      renderResults(document.getElementById('searchInput').value);
+    });
+  });
+}
+
+function renderResults(rawQuery){
+  const resultsEl = document.getElementById('results');
+  const statEl = document.getElementById('searchStat');
+  if(!rawQuery.trim()){
+    resultsEl.innerHTML = '';
+    statEl.textContent = '';
+    return;
+  }
+  const queryCodes = rawQuery.split(/[\s,]+/).filter(Boolean).map(normQueryTerm);
+  const prefixMode = document.getElementById('prefixMatch').classList.contains('active');
+  const viewMode = document.getElementById('viewMode').value;
+  const groupByType = document.getElementById('groupByType').classList.contains('active');
+  const sortOrder = document.getElementById('sortOrder').value;
+
+  function codeMatches(c, q){
+    if(c === q) return true;
+    if(prefixMode) return c.startsWith(q) || q.startsWith(c);
+    return false;
+  }
+
+  const fromStr = document.getElementById('dateFrom').value;
+  const toStr = document.getElementById('dateTo').value;
+  const from = parseDateInputValue(fromStr);
+  const to = parseDateInputValue(toStr);
+  const fromTs = from ? new Date(from.y, from.mo-1, from.d, 0,0,0).getTime() : null;
+  const toTs = to ? new Date(to.y, to.mo-1, to.d, 23,59,59).getTime() : null;
+
+  const sortFn = (a,b)=> sortOrder==='asc' ? a.ts-b.ts : b.ts-a.ts;
+
+  if(viewMode === 'message'){
+    let matches = messages.filter(m => m.codes.some(c => queryCodes.some(q => codeMatches(c,q))));
+    if(fromTs !== null) matches = matches.filter(m => m.ts >= fromTs);
+    if(toTs !== null) matches = matches.filter(m => m.ts <= toTs);
+    matches.sort(sortFn);
+
+    statEl.textContent = matches.length ? `${matches.length} رسالة مطابقة` : '';
+    if(matches.length === 0){
+      resultsEl.innerHTML = '<div class="empty">ما فيه نتائج مطابقة. تأكد إن الشات مستورد، أو جرّب جزء من الرقم، أو وسّع نطاق التاريخ.</div>';
+      return;
+    }
+    resultsEl.innerHTML = matches.map(m => `
+      <div class="result">
+        <div class="meta">
+          <span class="sender">${escapeHtml(m.sender)}</span>
+          <span>${m.dateStr} — ${m.timeStr}</span>
+        </div>
+        <div class="text">${highlight(escapeHtml(m.text), queryCodes, prefixMode)}</div>
+      </div>`).join('');
+    return;
+  }
+
+  // line mode
+  let matches = items.filter(it => it.codes.some(c => queryCodes.some(q => codeMatches(c,q))));
+  if(fromTs !== null) matches = matches.filter(it => it.ts >= fromTs);
+  if(toTs !== null) matches = matches.filter(it => it.ts <= toTs);
+
+  if(groupByType){
+    const allChipActive = document.querySelector('#typeFilterRow .type-chip[data-type="all"]').classList.contains('active');
+    const allowedTypes = allChipActive
+      ? new Set(Object.keys(TYPE_META))
+      : new Set([...document.querySelectorAll('#typeFilterRow .type-chip.active:not([data-type="all"])')].map(chip=>chip.dataset.type));
+    matches = matches.filter(it => allowedTypes.has(it.type));
+  }
+
+  matches.sort(sortFn);
+
+  statEl.textContent = matches.length ? `${matches.length} نتيجة مطابقة` : '';
+
+  if(matches.length === 0){
+    resultsEl.innerHTML = '<div class="empty">ما فيه نتائج مطابقة. تأكد إن الشات مستورد، أو جرّب جزء من الرقم، أو وسّع نطاق التاريخ أو أنواع البنود المختارة.</div>';
+    return;
+  }
+
+  function renderItem(it){
+    return `
+    <div class="result" style="border-right-color:${TYPE_META[it.type].color}">
+      <div class="meta">
+        <span class="sender">${escapeHtml(it.sender)}<span class="type-tag" style="background:${TYPE_META[it.type].color}">${TYPE_META[it.type].label}</span>${!it.blockValid ? '<span class="warn-tag">⚠ رقم قطعة غير متوقع</span>' : ''}</span>
+        <span>${it.dateStr} — ${it.timeStr}</span>
+      </div>
+      <div class="text">${highlight(escapeHtml(it.lineText), queryCodes, prefixMode, TYPE_META[it.type].color)}</div>
+    </div>`;
+  }
+
+  if(groupByType){
+    const order = ['mh','pipe','hc','soil','other'];
+    let html = '';
+    for(const t of order){
+      const group = matches.filter(it => it.type === t);
+      if(group.length === 0) continue;
+      html += `<div class="type-group-header">${TYPE_META[t].label} — ${group.length}</div>`;
+      html += group.map(renderItem).join('');
+    }
+    resultsEl.innerHTML = html;
+  }else{
+    resultsEl.innerHTML = matches.map(renderItem).join('');
+  }
+}
+
+function escapeHtml(s){
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+let debounce;
+document.getElementById('searchInput').addEventListener('input', (e) => {
+  clearTimeout(debounce);
+  debounce = setTimeout(()=>renderResults(e.target.value), 150);
+});
+document.getElementById('dateFrom').addEventListener('input', () => renderResults(document.getElementById('searchInput').value));
+document.getElementById('dateFrom').addEventListener('change', () => renderResults(document.getElementById('searchInput').value));
+document.getElementById('dateTo').addEventListener('input', () => renderResults(document.getElementById('searchInput').value));
+document.getElementById('dateTo').addEventListener('change', () => renderResults(document.getElementById('searchInput').value));
+document.getElementById('prefixMatch').addEventListener('click', (e) => {
+  e.target.classList.toggle('active');
+  applyChipVisual(e.target);
+  renderResults(document.getElementById('searchInput').value);
+});
+document.getElementById('groupByType').addEventListener('click', (e) => {
+  e.target.classList.toggle('active');
+  applyChipVisual(e.target);
+  document.getElementById('typeFilterRow').style.display = e.target.classList.contains('active') ? 'flex' : 'none';
+  renderResults(document.getElementById('searchInput').value);
+});
+document.getElementById('sortOrder').addEventListener('change', () => renderResults(document.getElementById('searchInput').value));
+document.getElementById('viewMode').addEventListener('change', (e) => {
+  const isLineMode = e.target.value === 'line';
+  const groupBlock = document.getElementById('groupOptionBlock');
+  const groupChip = document.getElementById('groupByType');
+  groupBlock.style.display = isLineMode ? 'block' : 'none';
+  if(!isLineMode) document.getElementById('typeFilterRow').style.display = 'none';
+  else if(groupChip.classList.contains('active')) document.getElementById('typeFilterRow').style.display = 'flex';
+  renderResults(document.getElementById('searchInput').value);
+});
+
+function buildBrowseFilters(){
+  const blockSel = document.getElementById('browseBlock');
+  const streetSel = document.getElementById('browseStreet');
+  const curBlock = blockSel.value;
+  const curStreet = streetSel.value;
+
+  const blocks = [...new Set(items.map(it=>it.block).filter(Boolean))].sort((a,b)=>a-b);
+  blockSel.innerHTML = '<option value="">الكل</option>' + blocks.map(b=>`<option value="${b}">${b}</option>`).join('');
+  if(blocks.includes(curBlock)) blockSel.value = curBlock;
+
+  const streetsSource = curBlock ? items.filter(it=>it.block===curBlock) : items;
+  const streets = [...new Set(streetsSource.map(it=>it.street).filter(Boolean))].sort((a,b)=>a-b);
+  streetSel.innerHTML = '<option value="">الكل</option>' + streets.map(s=>`<option value="${s}">${s}</option>`).join('');
+  if(streets.includes(curStreet)) streetSel.value = curStreet;
+
+  const typeRow = document.getElementById('browseTypeRow');
+  if(!typeRow.dataset.built){
+    const allChip = `<span class="type-chip active" data-type="all" style="--chip-color:#d4a83c">الكل</span>`;
+    const typeChips = Object.keys(TYPE_META).map(t => `
+      <span class="type-chip" data-type="${t}" style="--chip-color:${TYPE_META[t].color}">${TYPE_META[t].label}</span>
+    `).join('');
+    typeRow.innerHTML = allChip + typeChips;
+    typeRow.querySelectorAll('.type-chip').forEach(chip => {
+      applyChipVisual(chip);
+      chip.addEventListener('click', () => {
+        if(chip.dataset.type === 'all'){
+          if(!chip.classList.contains('active')){
+            typeRow.querySelectorAll('.type-chip').forEach(c => c.classList.remove('active'));
+            chip.classList.add('active');
+          }
+        }else{
+          typeRow.querySelector('.type-chip[data-type="all"]').classList.remove('active');
+          chip.classList.toggle('active');
+          const anyActive = [...typeRow.querySelectorAll('.type-chip:not([data-type="all"])')].some(c=>c.classList.contains('active'));
+          if(!anyActive) typeRow.querySelector('.type-chip[data-type="all"]').classList.add('active');
+        }
+        typeRow.querySelectorAll('.type-chip').forEach(applyChipVisual);
+        renderBrowse();
+      });
+    });
+    typeRow.dataset.built = '1';
+  }
+}
+
+function applyChipVisual(chip){
+  const color = chip.style.getPropertyValue('--chip-color');
+  if(chip.classList.contains('active')){
+    chip.style.background = color;
+    chip.style.color = '#101410';
+  }else{
+    chip.style.background = '';
+    chip.style.color = '';
+  }
+}
+
+function renderBrowse(){
+  const resultsEl = document.getElementById('browseResults');
+  const statEl = document.getElementById('browseStat');
+  const block = document.getElementById('browseBlock').value;
+  const street = document.getElementById('browseStreet').value;
+  const allChipActive = document.querySelector('#browseTypeRow .type-chip[data-type="all"]').classList.contains('active');
+  const allowedTypes = allChipActive
+    ? new Set(Object.keys(TYPE_META))
+    : new Set([...document.querySelectorAll('#browseTypeRow .type-chip.active:not([data-type="all"])')].map(chip=>chip.dataset.type));
+  const warnOnly = document.getElementById('browseWarnToggle').classList.contains('active');
+
+  let matches = items.filter(it =>
+    (!block || it.block === block) &&
+    (!street || it.street === street) &&
+    allowedTypes.has(it.type) &&
+    (!warnOnly || !it.blockValid)
+  );
+  matches.sort((a,b)=>b.ts-a.ts);
+
+  if(items.length === 0){
+    statEl.textContent = '';
+    resultsEl.innerHTML = '';
+    return;
+  }
+
+  statEl.textContent = `${matches.length} بند`;
+  if(matches.length === 0){
+    resultsEl.innerHTML = '<div class="empty">ما فيه بنود مطابقة للفلاتر المختارة.</div>';
+    return;
+  }
+  resultsEl.innerHTML = matches.slice(0,300).map(it => `
+    <div class="browse-item" style="border-right-color:${TYPE_META[it.type].color}">
+      <div class="meta">
+        <span class="sender">${escapeHtml(it.sender)}<span class="type-tag" style="background:${TYPE_META[it.type].color}">${TYPE_META[it.type].label}</span>${!it.blockValid ? '<span class="warn-tag">⚠ رقم قطعة غير متوقع</span>' : ''}</span>
+        <span>${it.dateStr} — ${it.timeStr}</span>
+      </div>
+      <div class="line">${escapeHtml(it.lineText)}</div>
+    </div>`).join('');
+}
+
+document.getElementById('browseWarnToggle').addEventListener('click', (e) => {
+  e.target.classList.toggle('active');
+  renderBrowse();
+});
+
+document.getElementById('browseReset').addEventListener('click', () => {
+  document.getElementById('browseBlock').value = '';
+  document.getElementById('browseStreet').value = '';
+  document.getElementById('browseWarnToggle').classList.remove('active');
+  document.querySelectorAll('#browseTypeRow .type-chip').forEach(chip => chip.classList.remove('active'));
+  document.querySelector('#browseTypeRow .type-chip[data-type="all"]').classList.add('active');
+  document.querySelectorAll('#browseTypeRow .type-chip').forEach(applyChipVisual);
+  buildBrowseFilters();
+  renderBrowse();
+});
+
+document.getElementById('browseBlock').addEventListener('change', () => { buildBrowseFilters(); renderBrowse(); });
+document.getElementById('browseStreet').addEventListener('change', renderBrowse);
+
+document.getElementById('themeToggle').addEventListener('click', (e) => {
+  document.body.classList.toggle('light-mode');
+  const isLight = document.body.classList.contains('light-mode');
+  e.target.textContent = isLight ? '🌙 الوضع الليلي' : '☀ الوضع النهاري';
+});
+
+const browseChev = document.getElementById('browseChev');
+const browseBody = document.getElementById('browseBody');
+browseChev.addEventListener('click', () => {
+  const isOpen = browseBody.classList.toggle('open');
+  browseChev.textContent = isOpen ? '▾ طي القسم' : '▸ عرض القسم';
+});
+setDefaultDateRange();
+buildTypeFilterRow();
+buildBrowseFilters();
+renderBrowse();
+
+</script>
+</body>
+</html>
