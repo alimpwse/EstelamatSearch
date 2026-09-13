@@ -427,8 +427,8 @@ const TYPE_META = {
 };
 
 function detectType(line){
-  if(/مانهول|منهول|\bmh\b/i.test(line)) return 'mh';
   if(/وصل|house\s*connection|\bhc\b/i.test(line)) return 'hc';
+  if(/مانهول|منهول|\bmh\b/i.test(line)) return 'mh';
   if(/بايب|ss\s*line|\bline\b/i.test(line)) return 'pipe';
   if(/مختبر|فحص\s*تربة/i.test(line)) return 'soil';
   return null;
